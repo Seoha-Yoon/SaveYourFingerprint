@@ -19,14 +19,11 @@ import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
-    // One Button
+    // Button
     Button BSelectImage;
 
-    // One Preview Image
-    ImageView IVPreviewImage;
-
-    // constant to compare the activity result code
-    int SELECT_PICTURE = 200;
+    // Preview Image
+    ImageView PreviewImage;
 
     int REQUEST_CODE = 200;
     Uri selectedImage;
@@ -40,35 +37,16 @@ public class MainActivity extends AppCompatActivity {
 
         // register the UI widgets with their appropriate IDs
         BSelectImage = findViewById(R.id.BSelectImage);
-        IVPreviewImage = findViewById(R.id.IVPreviewImage);
+        PreviewImage = findViewById(R.id.PreviewImage);
 
         // handle the Choose Image button to trigger the image chooser function
         BSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // imageChooser();
                 imageChooserWithMediaStore();
             }
         });
 
-
-
-        // upload picture -> MediaStore
-
-    }
-
-    // load image using SAF
-    // this function is triggered when the Select Image Button is clicked
-    void imageChooser() {
-
-        // create an instance of the intent of the type image
-        Intent i = new Intent();
-        i.setType("image/*");
-        i.setAction(Intent.ACTION_GET_CONTENT);
-
-        // pass the constant to compare it
-        // with the returned requestCode
-        startActivityForResult(Intent.createChooser(i, "Select Picture"), SELECT_PICTURE);
     }
 
     // load image using MediaStore
@@ -80,21 +58,6 @@ public class MainActivity extends AppCompatActivity {
     // this function is triggered when user elects the image from the imageChooser
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        // load image using SAF
-//        if (resultCode == RESULT_OK) {
-//
-//            // compare the resultCode with the
-//            // SELECT_PICTURE constant
-//            if (requestCode == SELECT_PICTURE) {
-//                // Get the url of the image from data
-//                Uri selectedImageUri = data.getData();
-//                if (null != selectedImageUri) {
-//                    // update the preview image in the layout
-//                    IVPreviewImage.setImageURI(selectedImageUri);
-//                }
-//            }
-//        }
 
         // load image using MediaStore
         if(requestCode== REQUEST_CODE && resultCode==RESULT_OK && data!=null) {
@@ -112,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // load image
-            IVPreviewImage.setImageBitmap(bitmap);
+            PreviewImage.setImageBitmap(bitmap);
 
             // 사진 경로
             Cursor cursor = getContentResolver().query(Uri.parse(selectedImage.toString()), null, null, null, null);
