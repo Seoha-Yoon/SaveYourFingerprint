@@ -3,11 +3,13 @@ package com.example.saveyourfingerprint;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +19,15 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -106,6 +117,40 @@ public class MainActivity extends AppCompatActivity {
 
     // Django 서버로 이미지 전송
     private void uploadImage(){
-        File imageFile = new File(mediaPath);
+
+        if(mediaPath == null){
+            Toast.makeText(this,"사진을 골라 주십시오.", Toast.LENGTH_SHORT);
+        }else{
+            File imageFile = new File(mediaPath);
+
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(DjangoApi.DJANGO_SITE)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+
+            DjangoApi postApi= retrofit.create(DjangoApi.class);
+
+            RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageFile);
+            MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("image", imageFile.getName(),requestBody);
+
+//            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+//            String token = sp.getString("Token", "");
+
+            Call<RequestBody> call = postApi.uploadFile(fileToUpload);
+
+            call.enqueue(new Callback<RequestBody>() {
+                @Override
+                public void onResponse(Call<RequestBody> call, Response<RequestBody> response) {
+                    Log.d("good", "good");
+
+                }
+                @Override
+                public void onFailure(Call<RequestBody> call, Throwable t) {
+                    Log.d("fail", "fail");
+                }
+            });
+        }
+
     }
 }
