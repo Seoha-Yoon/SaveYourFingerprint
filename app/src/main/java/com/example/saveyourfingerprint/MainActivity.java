@@ -160,6 +160,8 @@ public class MainActivity extends AppCompatActivity {
             byteBuff.write(buff, 0, len);
         }
 
+        Log.d("bytes_image", byteBuff.toByteArray().toString());
+
         return byteBuff.toByteArray();
     }
 
