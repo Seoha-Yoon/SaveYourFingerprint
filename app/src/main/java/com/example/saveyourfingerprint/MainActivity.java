@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Preview Image
     ImageView PreviewImage;
+    InputStream is;
 
     int REQUEST_CODE = 200;
     Uri selectedImage;
@@ -61,10 +62,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        BUploadImage.setOnClickListener(new View.OnClickListener(){
-//            @Override
-//            public void onClick(View v) { uploadImage(); }
-//        });
+        BUploadImage.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                try {
+                    uploadImage(getBytes(is));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
 
@@ -108,10 +115,10 @@ public class MainActivity extends AppCompatActivity {
 
 
             try {
-                InputStream is = getContentResolver().openInputStream(data.getData());
+                is = getContentResolver().openInputStream(data.getData());
 
                 Log.d("이미지 로드","업로드 시작");
-                uploadImage(getBytes(is));
+
 
             } catch (IOException e) {
                 e.printStackTrace();
