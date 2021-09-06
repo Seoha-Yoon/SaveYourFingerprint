@@ -196,6 +196,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                     Log.d("good", response.body().());
 
+                    // image 받음
+                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
+                    // intent.putExtra("image", resultImage);
+
+                    startActivity(intent);
+
                 }
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
