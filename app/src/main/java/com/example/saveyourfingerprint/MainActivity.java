@@ -15,12 +15,13 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
     // Button
-    Button BSelectImage;
+    Button BSelectImage, BUploadImage;
 
     // Preview Image
     ImageView PreviewImage;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         // register the UI widgets with their appropriate IDs
         BSelectImage = findViewById(R.id.BSelectImage);
         PreviewImage = findViewById(R.id.PreviewImage);
+        BUploadImage = findViewById(R.id.BUploadImage);
 
         // handle the Choose Image button to trigger the image chooser function
         BSelectImage.setOnClickListener(new View.OnClickListener() {
@@ -45,6 +47,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 imageChooserWithMediaStore();
             }
+        });
+
+        BUploadImage.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) { uploadImage(); }
         });
 
     }
@@ -82,7 +89,9 @@ public class MainActivity extends AppCompatActivity {
             assert cursor != null;
             cursor.moveToFirst();
             mediaPath = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
-            Log.d("경로 확인 >> ", "$selectedImg  /  $absolutePath");
+            //Log.d("경로 확인 >> ", "$selectedImg  /  $absolutePath");
+            Log.d("경로 확인 >>", mediaPath);
+            // /storage/emulated/0/DCIM/Camera/20210905_184903.jpg
 
         }else{
             Toast.makeText(this, "사진 업로드 실패", Toast.LENGTH_LONG).show();
@@ -93,5 +102,10 @@ public class MainActivity extends AppCompatActivity {
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
+
+    // Django 서버로 이미지 전송
+    private void uploadImage(){
+        File imageFile = new File(mediaPath);
     }
 }

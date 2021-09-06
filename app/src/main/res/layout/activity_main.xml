@@ -9,30 +9,48 @@
     tools:ignore="HardcodedText">
 
     <!--Button to open the image selector-->
+
+    <!--ImageView to preview the selected image-->
+
+    <Button
+        android:id="@+id/BUploadImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:backgroundTint="@color/black"
+        android:text="UPLOAD IMAGE"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/BSelectImage" />
+
     <Button
         android:id="@+id/BSelectImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="50dp"
         android:backgroundTint="@color/black"
         android:text="SELECT IMAGE"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/PreviewImage" />
 
-    <!--ImageView to preview the selected image-->
     <ImageView
         android:id="@+id/PreviewImage"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:layout_below="@id/BSelectImage"
-        android:layout_marginTop="50dp"
+        android:layout_below="@id/BUploadImage"
+        android:layout_marginTop="100dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/BSelectImage" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/app_icon"
