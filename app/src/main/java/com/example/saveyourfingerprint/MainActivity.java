@@ -11,16 +11,22 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -33,12 +39,14 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     int REQUEST_CODE = 200;
     Uri selectedImage;
     String mediaPath;
+    Bitmap bitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,10 +80,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        BUploadImage.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) { uploadImage(); }
-        });
+//        BUploadImage.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View v) { uploadImage(); }
+//        });
 
     }
 
@@ -93,12 +102,13 @@ public class MainActivity extends AppCompatActivity {
 
             selectedImage = data.getData();
             Uri photoUri = data.getData();
-            Bitmap bitmap = null;
+            bitmap = null;
 
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),photoUri);
                 // 사진 옆으로 누워서 출력 되는 것 해결
                 bitmap = rotateImage(bitmap, 90);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -115,6 +125,18 @@ public class MainActivity extends AppCompatActivity {
             Log.d("경로 확인 >>", mediaPath);
             // /storage/emulated/0/DCIM/Camera/20210905_184903.jpg
 
+
+            try {
+                InputStream is = getContentResolver().openInputStream(data.getData());
+
+                Log.d("이미지 로드","업로드 시작");
+                uploadImage(getBytes(is));
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
         }else{
             Toast.makeText(this, "사진 업로드 실패", Toast.LENGTH_LONG).show();
         }
@@ -126,44 +148,56 @@ public class MainActivity extends AppCompatActivity {
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
+    public byte[] getBytes(InputStream is) throws IOException {
+        ByteArrayOutputStream byteBuff = new ByteArrayOutputStream();
+
+        int buffSize = 1024;
+        byte[] buff = new byte[buffSize];
+
+        int len = 0;
+        while ((len = is.read(buff)) != -1) {
+            byteBuff.write(buff, 0, len);
+        }
+
+        return byteBuff.toByteArray();
+    }
+
+
+
     // Django 서버로 이미지 전송
-    private void uploadImage(){
+    private void uploadImage(byte[] imageBytes){
 
-        if(mediaPath == null){
-            Toast.makeText(this,"사진을 골라 주십시오.", Toast.LENGTH_SHORT);
-        }else{
-            File imageFile = new File(mediaPath);
-            Log.d("이미지 경로",mediaPath);
+            Log.d("1","1");
 
-            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .addInterceptor(interceptor)
-                    .build();
+//            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+//            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+//            OkHttpClient client = new OkHttpClient.Builder()
+//                    .addInterceptor(interceptor)
+//                    .build();
 
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(DjangoApi.DJANGO_SITE)
                     .addConverterFactory(GsonConverterFactory.create())
-                    .client(client)
+                   // .client(client)
                     .build();
 
 
             DjangoApi postApi= retrofit.create(DjangoApi.class);
+            Log.d("2","retrofit 생성");
 
-            RequestBody requestBody = RequestBody.create(imageFile,MediaType.parse("image/jpg"));
-            MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file", imageFile.getName(),requestBody);
+            RequestBody requestBody = RequestBody.create(imageBytes,MediaType.parse("image/jpeg"));
+            Log.d("3", "requestBody 생성");
 
-            Log.d("이미지 확인",imageFile.getName());
+            MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file","image.jpg",requestBody);
 
-//            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//            String token = sp.getString("Token", "");
+            Log.d("이미지 확인"," ");
 
             Call<RequestBody> call = postApi.uploadFile(fileToUpload);
             Log.d("call","call");
 
             call.enqueue(new Callback<RequestBody>() {
                 @Override
-                public void onResponse(Call<RequestBody> call, Response<RequestBody> response) {
+                public void onResponse(Call<RequestBody> call, retrofit2.Response<RequestBody> response) {
                     if(!response.isSuccessful()){
                         Log.e("연결이 비정상적 : ", "error code : " + response.code());
                         return;
@@ -173,39 +207,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 @Override
                 public void onFailure(Call<RequestBody> call, Throwable t) {
-                    Log.d("fail", "fail");
+                    Log.d("fail", t.toString());
+                    //Log.d("fail", "fail");
                 }
             });
 
             Log.d("end","end");
-        }
 
-    }
-
-    private void uploadImage2(){
-
-        try{
-            URL url = new URL("http://127.0.0.1:8000/api/fakeprint");
-            HttpURLConnection con = (HttpURLConnection)url.openConnection();
-            con.setRequestMethod("POST");
-            con.setRequestProperty("Content-Type","multipart/form-data");
-            con.setDoOutput(true);
-
-            // [2-2]. parameter 전달 및 데이터 읽어오기.
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(con.getOutputStream()));
-            //pw.write(sbParams.toString());
-            pw.flush(); // 출력 스트림을 flush. 버퍼링 된 모든 출력 바이트를 강제 실행.
-            pw.close(); // 출력 스트림을 닫고 모든 시스템 자원을 해제.
-
-            // [2-3]. 연결 요청 확인.
-            // 실패 시 null을 리턴하고 메서드를 종료.
-            if (con.getResponseCode() != HttpURLConnection.HTTP_OK)
-                Log.d("연결요청","실패");
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
