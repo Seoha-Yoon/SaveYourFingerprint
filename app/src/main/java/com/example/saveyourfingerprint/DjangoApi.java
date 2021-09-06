@@ -8,10 +8,12 @@ import retrofit2.http.POST;
 import retrofit2.http.Part;
 
 public interface DjangoApi {
-    String DJANGO_SITE="http://127.0.0.1:8000/";
+//    String DJANGO_SITE="http://127.0.0.1:8000";
+    String DJANGO_SITE="http://10.0.2.2:8000";
 
     @Multipart
     @POST("api/fakeprint")
-    Call<RequestBody> uploadFile(@Part MultipartBody.Part file);
+    Call <RequestBody> uploadFile(@Part MultipartBody.Part file);
 }
+
 
