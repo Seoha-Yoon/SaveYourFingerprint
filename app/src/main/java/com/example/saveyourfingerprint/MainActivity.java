@@ -1,51 +1,31 @@
 package com.example.saveyourfingerprint;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.Gson;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Arrays;
 
-import okhttp3.ConnectionSpec;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -175,8 +155,9 @@ public class MainActivity extends AppCompatActivity {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
             interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             OkHttpClient client = new OkHttpClient.Builder()
-                    .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT,ConnectionSpec.MODERN_TLS))
+                    .addNetworkInterceptor(interceptor)
                     .build();
+//                    .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT,ConnectionSpec.MODERN_TLS))
 
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(DjangoApi.DJANGO_SITE)
@@ -193,12 +174,10 @@ public class MainActivity extends AppCompatActivity {
 
             MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file","image.jpg",requestBody);
 
-            Log.d("이미지 확인"," ");
+            Log.d("이미지 확인",requestBody.toString());
 
-            Call<RequestBody> call = postApi.uploadFile(fileToUpload);
-            Log.d("call","call");
-
-            call.enqueue(new Callback<RequestBody>() {
+            Call <RequestBody> call = postApi.uploadFile(fileToUpload);
+            call.enqueue(new Callback <RequestBody>() {
                 @Override
                 public void onResponse(Call<RequestBody> call, retrofit2.Response<RequestBody> response) {
                     if(!response.isSuccessful()){
