@@ -29,7 +29,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import sun.misc.BASE64Decoder;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -39,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Preview Image
     ImageView PreviewImage;
-    InputStream is;
 
     int REQUEST_CODE = 200;
     Uri selectedImage;
@@ -65,16 +63,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        BUploadImage.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                try {
-                    uploadImage(getBytes(is));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+//        BUploadImage.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View v) { uploadImage(); }
+//        });
 
     }
 
@@ -118,10 +110,10 @@ public class MainActivity extends AppCompatActivity {
 
 
             try {
-                is = getContentResolver().openInputStream(data.getData());
+                InputStream is = getContentResolver().openInputStream(data.getData());
 
                 Log.d("이미지 로드","업로드 시작");
-
+                uploadImage(getBytes(is));
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -195,12 +187,6 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     Log.d("good", response.body().());
-
-                    // image 받음
-                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
-                    // intent.putExtra("image", resultImage);
-
-                    startActivity(intent);
 
                 }
                 @Override
