@@ -23,11 +23,14 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import sun.misc.BASE64Decoder;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -155,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
             interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             OkHttpClient client = new OkHttpClient.Builder()
-                    .addNetworkInterceptor(interceptor)
+//                    .addNetworkInterceptor(interceptor)
                     .build();
 //                    .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT,ConnectionSpec.MODERN_TLS))
 
@@ -176,19 +179,19 @@ public class MainActivity extends AppCompatActivity {
 
             Log.d("이미지 확인",requestBody.toString());
 
-            Call <RequestBody> call = postApi.uploadFile(fileToUpload);
-            call.enqueue(new Callback <RequestBody>() {
+            Call <ResponseBody> call = postApi.uploadFile(fileToUpload);
+            call.enqueue(new Callback <ResponseBody>() {
                 @Override
-                public void onResponse(Call<RequestBody> call, retrofit2.Response<RequestBody> response) {
+                public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
                     if(!response.isSuccessful()){
                         Log.e("연결이 비정상적 : ", "error code : " + response.code());
                         return;
                     }
-                    Log.d("good", "good");
+                    Log.d("good", response.body().());
 
                 }
                 @Override
-                public void onFailure(Call<RequestBody> call, Throwable t) {
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
                     Log.d("fail", t.toString());
                     //Log.d("fail", "fail");
                 }
