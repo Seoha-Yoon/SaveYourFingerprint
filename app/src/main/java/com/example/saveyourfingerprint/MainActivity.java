@@ -34,7 +34,9 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 
+import okhttp3.ConnectionSpec;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -168,16 +170,16 @@ public class MainActivity extends AppCompatActivity {
 
             Log.d("1","1");
 
-//            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-//            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-//            OkHttpClient client = new OkHttpClient.Builder()
-//                    .addInterceptor(interceptor)
-//                    .build();
+            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT,ConnectionSpec.MODERN_TLS))
+                    .build();
 
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(DjangoApi.DJANGO_SITE)
                     .addConverterFactory(GsonConverterFactory.create())
-                   // .client(client)
+                    .client(client)
                     .build();
 
 
