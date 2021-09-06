@@ -17,12 +17,23 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -122,26 +133,41 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,"사진을 골라 주십시오.", Toast.LENGTH_SHORT);
         }else{
             File imageFile = new File(mediaPath);
+            Log.d("이미지 경로",mediaPath);
+
+            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(interceptor)
+                    .build();
 
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(DjangoApi.DJANGO_SITE)
                     .addConverterFactory(GsonConverterFactory.create())
+                    .client(client)
                     .build();
 
 
             DjangoApi postApi= retrofit.create(DjangoApi.class);
 
-            RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageFile);
-            MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("image", imageFile.getName(),requestBody);
+            RequestBody requestBody = RequestBody.create(imageFile,MediaType.parse("image/jpg"));
+            MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file", imageFile.getName(),requestBody);
+
+            Log.d("이미지 확인",imageFile.getName());
 
 //            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 //            String token = sp.getString("Token", "");
 
             Call<RequestBody> call = postApi.uploadFile(fileToUpload);
+            Log.d("call","call");
 
             call.enqueue(new Callback<RequestBody>() {
                 @Override
                 public void onResponse(Call<RequestBody> call, Response<RequestBody> response) {
+                    if(!response.isSuccessful()){
+                        Log.e("연결이 비정상적 : ", "error code : " + response.code());
+                        return;
+                    }
                     Log.d("good", "good");
 
                 }
@@ -150,7 +176,36 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("fail", "fail");
                 }
             });
+
+            Log.d("end","end");
         }
 
+    }
+
+    private void uploadImage2(){
+
+        try{
+            URL url = new URL("http://127.0.0.1:8000/api/fakeprint");
+            HttpURLConnection con = (HttpURLConnection)url.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type","multipart/form-data");
+            con.setDoOutput(true);
+
+            // [2-2]. parameter 전달 및 데이터 읽어오기.
+            PrintWriter pw = new PrintWriter(new OutputStreamWriter(con.getOutputStream()));
+            //pw.write(sbParams.toString());
+            pw.flush(); // 출력 스트림을 flush. 버퍼링 된 모든 출력 바이트를 강제 실행.
+            pw.close(); // 출력 스트림을 닫고 모든 시스템 자원을 해제.
+
+            // [2-3]. 연결 요청 확인.
+            // 실패 시 null을 리턴하고 메서드를 종료.
+            if (con.getResponseCode() != HttpURLConnection.HTTP_OK)
+                Log.d("연결요청","실패");
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
