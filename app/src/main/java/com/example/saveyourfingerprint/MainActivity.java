@@ -1,3 +1,4 @@
+// Good
 package com.example.saveyourfingerprint;
 
 import android.content.Intent;
@@ -186,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.e("연결이 비정상적 : ", "error code : " + response.code());
                         return;
                     }
-                    Log.d("good", response.body().());
+                    Log.d("good", response.body().toString());
 
                 }
                 @Override
