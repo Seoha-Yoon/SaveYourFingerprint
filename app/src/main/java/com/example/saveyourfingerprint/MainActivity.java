@@ -4,6 +4,7 @@ package com.example.saveyourfingerprint;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +20,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
+import java.time.LocalDate;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -153,51 +156,67 @@ public class MainActivity extends AppCompatActivity {
     // Django 서버로 이미지 전송
     private void uploadImage(byte[] imageBytes){
 
-            Log.d("1","1");
+        Log.d("1","1");
 
-            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            OkHttpClient client = new OkHttpClient.Builder()
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient client = new OkHttpClient.Builder()
 //                    .addNetworkInterceptor(interceptor)
-                    .build();
+                .build();
 //                    .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT,ConnectionSpec.MODERN_TLS))
 
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(DjangoApi.DJANGO_SITE)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .client(client)
-                    .build();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(DjangoApi.DJANGO_SITE)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
+                .build();
 
 
-            DjangoApi postApi= retrofit.create(DjangoApi.class);
-            Log.d("2","retrofit 생성");
+        DjangoApi postApi= retrofit.create(DjangoApi.class);
+        Log.d("2","retrofit 생성");
 
-            RequestBody requestBody = RequestBody.create(imageBytes,MediaType.parse("image/jpeg"));
-            Log.d("3", "requestBody 생성");
+        RequestBody requestBody = RequestBody.create(imageBytes,MediaType.parse("image/jpeg"));
+        Log.d("3", "requestBody 생성");
 
-            MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file","image.jpg",requestBody);
+        MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file","image.jpg",requestBody);
 
-            Log.d("이미지 확인",requestBody.toString());
+        Log.d("이미지 확인",requestBody.toString());
 
-            Call <ResponseBody> call = postApi.uploadFile(fileToUpload);
-            call.enqueue(new Callback <ResponseBody>() {
-                @Override
-                public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
-                    if(!response.isSuccessful()){
-                        Log.e("연결이 비정상적 : ", "error code : " + response.code());
-                        return;
-                    }
-                    Log.d("good", response.body().toString());
-
+        Call <ResponseBody> call = postApi.uploadFile(fileToUpload);
+        call.enqueue(new Callback <ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
+                if(!response.isSuccessful()){
+                    Log.e("연결이 비정상적 : ", "error code : " + response.code());
+                    return;
                 }
-                @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    Log.d("fail", t.toString());
-                    //Log.d("fail", "fail");
-                }
-            });
+                Log.d("good", response.body().toString());
 
-            Log.d("end","end");
+                // response.body()를 resultactivity로 넘김
+                try {
+                    byte[] byteArray = (response.body()).byteString().toByteArray();
+                    Log.d("response.body", String.valueOf(response.body()));
+                    Log.d("toByteArray()",byteArray.toString());
+                    Log.d("length",String.valueOf(byteArray.length));
+
+                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
+                    intent.putExtra("image", byteArray);
+                    startActivity(intent);
+
+                } catch (IOException e) {
+                    Log.d("fail","to convert image to byteArray");
+                    e.printStackTrace();
+                }
+
+            }
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.d("fail", t.toString());
+                //Log.d("fail", "fail");
+            }
+        });
+
+        Log.d("end","end");
 
     }
 }
