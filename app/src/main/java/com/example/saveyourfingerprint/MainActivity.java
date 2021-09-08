@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -26,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
@@ -201,27 +205,42 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 ResponseBody body = response.body();
-                try{String result = body.string();
-                    Log.d("good", result);
-                    byte[] byteArray = result.getBytes();
-                    Bitmap bitmap_image = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-                    //Bitmap bitmap_image = getBitmapByEncodedString(result);
-                    PreviewImage.setImageBitmap(bitmap_image);
 
-                    Log.d("Bitmap error", String.valueOf(bitmap_image));
-
-
-                    StringBuilder str = new StringBuilder();
-                    for(byte b: byteArray) {
-                        str = str.append(Byte.toString(b));
-                        str = str.append(",");
-                    }
-
-                    Log.d("byte content",str.substring(0));
-
-                }catch (IOException e){
+                String result = null;
+                try {
+                    result = body.string();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
+                Log.d("good", result);
+
+                byte[] byteArray = result.getBytes();
+
+                // byteArray에서 바로 bitMap으로 변환 불가
+                // byteArray ->> jpeg ->> bitMap
+                // YuvImage는 Raw데이터를 jpeg으로 바꿔줌
+                YuvImage yuvimage = new YuvImage(byteArray, ImageFormat.NV21, 100, 100, null );
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                yuvimage.compressToJpeg(new Rect(0, 0, 100, 100), 80, baos);
+                byte[] jdata = baos.toByteArray();
+
+                // Convert to Bitmap
+                Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
+
+                //Bitmap bitmap_image = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+                //Bitmap bitmap_image = StringToBitMap(result);
+                PreviewImage.setImageBitmap(bmp);
+
+                Log.d("Bitmap", String.valueOf(bmp));
+
+
+                StringBuilder str = new StringBuilder();
+                for(byte b: byteArray) {
+                    str = str.append(Byte.toString(b));
+                    str = str.append(",");
+                }
+
+                Log.d("byte content",str.substring(0));
 
 
 //                    // response.body()를 resultactivity로 넘김
@@ -266,4 +285,6 @@ public class MainActivity extends AppCompatActivity {
         InputStream stream = new ByteArrayInputStream(Base64.decode(imageDataBytes.getBytes(), Base64.DEFAULT));
         return BitmapFactory.decodeStream(stream);
     }
+
+
 }
