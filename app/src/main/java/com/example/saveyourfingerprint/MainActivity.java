@@ -9,6 +9,8 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.renderscript.ScriptGroup;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +19,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     Uri selectedImage;
     String mediaPath;
     Bitmap bitmap;
+
+    byte[] image_byte;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +124,8 @@ public class MainActivity extends AppCompatActivity {
                 InputStream is = getContentResolver().openInputStream(data.getData());
 
                 Log.d("이미지 로드","업로드 시작");
-                uploadImage(getBytes(is));
+                image_byte = getBytes(is);
+                uploadImage(image_byte);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -184,8 +191,6 @@ public class MainActivity extends AppCompatActivity {
 
         MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file","image.jpg",requestBody);
 
-        Log.d("이미지 확인",requestBody.toString());
-
         Call <ResponseBody> call = postApi.uploadFile(fileToUpload);
         call.enqueue(new Callback <ResponseBody>() {
             @Override
@@ -194,23 +199,35 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("연결이 비정상적 : ", "error code : " + response.code());
                     return;
                 }
-                Log.d("good", response.body().toString());
 
-                // response.body()를 resultactivity로 넘김
-                try {
-                    byte[] byteArray = (response.body()).byteString().toByteArray();
-                    Log.d("response.body", String.valueOf(response.body()));
-                    Log.d("toByteArray()",byteArray.toString());
-                    Log.d("length",String.valueOf(byteArray.length));
+                ResponseBody body = response.body();
+                try{String result = body.string();
+                    Log.d("good", result);
+                    byte[] byteArray = result.getBytes();
+                    Bitmap bitmap_image = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+                    //Bitmap bitmap_image = getBitmapByEncodedString(result);
+                    PreviewImage.setImageBitmap(bitmap_image);
 
-                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
-                    intent.putExtra("image", byteArray);
-                    startActivity(intent);
+                    Log.d("Bitmap error", String.valueOf(bitmap_image));
 
-                } catch (IOException e) {
-                    Log.d("fail","to convert image to byteArray");
+
+                    StringBuilder str = new StringBuilder();
+                    for(byte b: byteArray) {
+                        str = str.append(Byte.toString(b));
+                        str = str.append(",");
+                    }
+
+                    Log.d("byte content",str.substring(0));
+
+                }catch (IOException e){
                     e.printStackTrace();
                 }
+
+
+//                    // response.body()를 resultactivity로 넘김
+//                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
+//                    intent.putExtra("image", bitmap_image);
+//                    startActivity(intent);
 
             }
             @Override
@@ -222,5 +239,31 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("end","end");
 
+    }
+
+    public static byte[] streamToByte(InputStream is) {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        int nRead;
+        byte[] data = new byte[16384];
+
+        try {
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            buffer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return buffer.toByteArray();
+    }
+
+    public static Bitmap getBitmapByEncodedString(String base64String) {
+        String imageDataBytes = base64String.substring(base64String.indexOf(",")+1);
+        Log.d("string_ver",imageDataBytes);
+        InputStream stream = new ByteArrayInputStream(Base64.decode(imageDataBytes.getBytes(), Base64.DEFAULT));
+        return BitmapFactory.decodeStream(stream);
     }
 }

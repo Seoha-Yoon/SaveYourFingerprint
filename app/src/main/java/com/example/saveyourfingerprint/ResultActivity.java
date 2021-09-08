@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ResultActivity extends AppCompatActivity {
 
@@ -34,6 +36,8 @@ public class ResultActivity extends AppCompatActivity {
 
     byte[] byteArray;
 
+    String getTime;
+    Bitmap bitmap;
 
     // 이미지 파일 저장
     public void saveFile(@NonNull final byte[] bArray, @NonNull final String mimeType, @NonNull final String displayName) throws IOException {
@@ -100,16 +104,22 @@ public class ResultActivity extends AppCompatActivity {
         Log.d("byteArray",byteArray.toString());
 
         // 왜 bitmap이 null 값이 나올까? -> invalid byteArray, Log 출력 결과 받아오는 byte array 값 다 똑같음..
-        Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray,0,byteArray.length);
+        // Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray,0,byteArray.length);
         Log.d("bitmap",String.valueOf(bitmap));
         Log.d("byte length",String.valueOf(byteArray.length));
 
         // bitmap으로 변환한 이미지 출력 but bitmap이 null값이라 아무것도 없음.
         resultImage.setImageBitmap(bitmap);
-        
+
+        // 현재 날
+        long now = System.currentTimeMillis();
+        Date mDate = new Date(now);
+        SimpleDateFormat simpleDate = new SimpleDateFormat("/yyyyMMdd_hhmmss");
+        getTime = simpleDate.format(mDate);
+
         // byteArray를 'image1.jpg'로 저장 -> 저장은 되는데, image로 바뀌지 않음. 아마 byte array 문제
         try {
-            saveFile(byteArray,"image/*","image1.jpg");
+            saveFile(byteArray,"image/*","image"+getTime+".jpg");
         } catch (IOException e) {
             e.printStackTrace();
         }
