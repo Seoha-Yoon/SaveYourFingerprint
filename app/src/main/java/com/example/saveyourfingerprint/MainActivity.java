@@ -28,6 +28,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.time.LocalDate;
 import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
@@ -225,7 +226,12 @@ public class MainActivity extends AppCompatActivity {
                 byte[] jdata = baos.toByteArray();
 
                 // Convert to Bitmap
-                Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
+                // Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
+
+                // 다른 방법
+                Bitmap bmp = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+                ByteBuffer buffer = ByteBuffer.wrap(byteArray);
+                bmp.copyPixelsFromBuffer(buffer);
 
                 //Bitmap bitmap_image = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
                 //Bitmap bitmap_image = StringToBitMap(result);
@@ -245,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
 
 //                    // response.body()를 resultactivity로 넘김
 //                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
-//                    intent.putExtra("image", bitmap_image);
+//                    intent.putExtra("image", bitmapdata);
 //                    startActivity(intent);
 
             }
