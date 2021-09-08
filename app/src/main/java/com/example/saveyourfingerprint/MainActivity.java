@@ -43,6 +43,8 @@ import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+//import org.apache.commons.codec.binary.Base64;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -214,18 +216,19 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.d("good", result);
 
-                byte[] byteArray = result.getBytes();
+                byte[] byteArray = Base64.decode(result, Base64.DEFAULT);
 
+                Bitmap bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
                 // byteArray에서 바로 bitMap으로 변환 불가
                 // byteArray ->> jpeg ->> bitMap
                 // YuvImage는 Raw데이터를 jpeg으로 바꿔줌
-                YuvImage yuvimage = new YuvImage(byteArray, ImageFormat.NV21, 100, 100, null );
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                yuvimage.compressToJpeg(new Rect(0, 0, 100, 100), 80, baos);
-                byte[] jdata = baos.toByteArray();
-
-                // Convert to Bitmap
-                Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
+//                YuvImage yuvimage = new YuvImage(byteArray, ImageFormat.NV21, 100, 100, null );
+//                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//                yuvimage.compressToJpeg(new Rect(0, 0, 100, 100), 80, baos);
+//                byte[] jdata = baos.toByteArray();
+//
+//                // Convert to Bitmap
+//                Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
 
                 //Bitmap bitmap_image = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
                 //Bitmap bitmap_image = StringToBitMap(result);
