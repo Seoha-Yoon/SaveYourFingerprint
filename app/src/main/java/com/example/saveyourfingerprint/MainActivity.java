@@ -279,12 +279,4 @@ public class MainActivity extends AppCompatActivity {
         return buffer.toByteArray();
     }
 
-    public static Bitmap getBitmapByEncodedString(String base64String) {
-        String imageDataBytes = base64String.substring(base64String.indexOf(",")+1);
-        Log.d("string_ver",imageDataBytes);
-        InputStream stream = new ByteArrayInputStream(Base64.decode(imageDataBytes.getBytes(), Base64.DEFAULT));
-        return BitmapFactory.decodeStream(stream);
-    }
-
-
 }
