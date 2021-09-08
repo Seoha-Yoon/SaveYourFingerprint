@@ -79,10 +79,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        BUploadImage.setOnClickListener(new View.OnClickListener(){
-//            @Override
-//            public void onClick(View v) { uploadImage(); }
-//        });
+        BUploadImage.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) { uploadImage(image_byte); }
+        });
 
     }
 
@@ -120,17 +120,16 @@ public class MainActivity extends AppCompatActivity {
             assert cursor != null;
             cursor.moveToFirst();
             mediaPath = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
+
             //Log.d("경로 확인 >> ", "$selectedImg  /  $absolutePath");
             Log.d("경로 확인 >>", mediaPath);
             // /storage/emulated/0/DCIM/Camera/20210905_184903.jpg
-
 
             try {
                 InputStream is = getContentResolver().openInputStream(data.getData());
 
                 Log.d("이미지 로드","업로드 시작");
                 image_byte = getBytes(is);
-                uploadImage(image_byte);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -200,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
         call.enqueue(new Callback <ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
+
                 if(!response.isSuccessful()){
                     Log.e("연결이 비정상적 : ", "error code : " + response.code());
                     return;
@@ -215,44 +215,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.d("good", result);
 
-                byte[] byteArray = result.getBytes();
+                byte[] byteArray = Base64.decode(result, Base64.DEFAULT);
 
-                // byteArray에서 바로 bitMap으로 변환 불가
-                // byteArray ->> jpeg ->> bitMap
-                // YuvImage는 Raw데이터를 jpeg으로 바꿔줌
-                YuvImage yuvimage = new YuvImage(byteArray, ImageFormat.NV21, 100, 100, null );
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                yuvimage.compressToJpeg(new Rect(0, 0, 100, 100), 80, baos);
-                byte[] jdata = baos.toByteArray();
-
-                // Convert to Bitmap
-                // Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
-
-                // 다른 방법
-                Bitmap bmp = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
-                ByteBuffer buffer = ByteBuffer.wrap(byteArray);
-                bmp.copyPixelsFromBuffer(buffer);
-
-                //Bitmap bitmap_image = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-                //Bitmap bitmap_image = StringToBitMap(result);
-                PreviewImage.setImageBitmap(bmp);
-
-                Log.d("Bitmap", String.valueOf(bmp));
-
-
-                StringBuilder str = new StringBuilder();
-                for(byte b: byteArray) {
-                    str = str.append(Byte.toString(b));
-                    str = str.append(",");
-                }
-
-                Log.d("byte content",str.substring(0));
-
-
-//                    // response.body()를 resultactivity로 넘김
-//                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
-//                    intent.putExtra("image", bitmapdata);
-//                    startActivity(intent);
+                // response.body()의 byteArray를 resultActvity로 넘김
+                Intent intent = new Intent(MainActivity.this, ResultActivity.class);
+                intent.putExtra("image", byteArray);
+                startActivity(intent);
 
             }
             @Override
@@ -264,25 +232,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("end","end");
 
-    }
-
-    public static byte[] streamToByte(InputStream is) {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-
-        int nRead;
-        byte[] data = new byte[16384];
-
-        try {
-            while ((nRead = is.read(data, 0, data.length)) != -1) {
-                buffer.write(data, 0, nRead);
-            }
-            buffer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        return buffer.toByteArray();
     }
 
 }

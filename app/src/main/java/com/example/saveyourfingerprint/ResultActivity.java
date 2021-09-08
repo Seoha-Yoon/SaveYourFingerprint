@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
@@ -99,30 +100,35 @@ public class ResultActivity extends AppCompatActivity {
         resultImage = findViewById(R.id.ResultImage);
         BtnDownload = findViewById(R.id.BDownloadImage);
 
-        // MainActivity에서 getExtra로 받아온 Image의 ByteArray
+        // MainActivity에서 getExtra로 받아온 Image의 byteArray
         byteArray = getIntent().getByteArrayExtra("image");
         Log.d("byteArray",byteArray.toString());
-
-        // 왜 bitmap이 null 값이 나올까? -> invalid byteArray, Log 출력 결과 받아오는 byte array 값 다 똑같음..
-        // Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray,0,byteArray.length);
         Log.d("bitmap",String.valueOf(bitmap));
         Log.d("byte length",String.valueOf(byteArray.length));
 
-        // bitmap으로 변환한 이미지 출력 but bitmap이 null값이라 아무것도 없음.
+        bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+
         resultImage.setImageBitmap(bitmap);
 
-        // 현재 날
-        long now = System.currentTimeMillis();
-        Date mDate = new Date(now);
-        SimpleDateFormat simpleDate = new SimpleDateFormat("/yyyyMMdd_hhmmss");
-        getTime = simpleDate.format(mDate);
+        BtnDownload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
-        // byteArray를 'image1.jpg'로 저장 -> 저장은 되는데, image로 바뀌지 않음. 아마 byte array 문제
-        try {
-            saveFile(byteArray,"image/*","image"+getTime+".jpg");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                // 현재 날
+                long now = System.currentTimeMillis();
+                Date mDate = new Date(now);
+                SimpleDateFormat simpleDate = new SimpleDateFormat("/yyyyMMdd_hhmmss");
+                getTime = simpleDate.format(mDate);
+
+                // byteArray를 'image_YYYYMMDD_time.jpg'로 저장
+                try {
+                    saveFile(byteArray,"image/*","image"+getTime+".jpg");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
 
     }
 }
