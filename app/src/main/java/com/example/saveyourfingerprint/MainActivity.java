@@ -17,10 +17,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.concurrent.TimeUnit;
 
@@ -194,11 +197,22 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("연결이 비정상적 : ", "error code : " + response.code());
                     return;
                 }
-                Log.d("good", response.body().toString());
+
+//                String result = response.body().toString();
+                ResponseBody body = response.body();
+                body.close();
+                try{
+                    String result = body.string();
+                    Log.d("good", result);
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+
+
 
                 // response.body()를 resultactivity로 넘김
                 try {
-                    byte[] byteArray = (response.body()).byteString().toByteArray();
+                    byte[] byteArray = body.string().getBytes();
                     Log.d("response.body", String.valueOf(response.body()));
                     Log.d("toByteArray()",byteArray.toString());
                     Log.d("length",String.valueOf(byteArray.length));
@@ -211,13 +225,12 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("fail","to convert image to byteArray");
                     e.printStackTrace();
                 }
-
             }
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.d("fail", t.toString());
-                //Log.d("fail", "fail");
-            }
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.d("fail", t.toString());
+                    //Log.d("fail", "fail");
+                }
         });
 
         Log.d("end","end");
