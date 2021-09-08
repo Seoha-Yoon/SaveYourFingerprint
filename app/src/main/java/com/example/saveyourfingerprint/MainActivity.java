@@ -105,8 +105,6 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),photoUri);
-                // 사진 옆으로 누워서 출력 되는 것 해결
-                bitmap = rotateImage(bitmap, 90);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -139,12 +137,6 @@ public class MainActivity extends AppCompatActivity {
         }else{
             Toast.makeText(this, "사진 업로드 실패", Toast.LENGTH_LONG).show();
         }
-    }
-
-    public static Bitmap rotateImage(Bitmap source, float angle) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
     public byte[] getBytes(InputStream is) throws IOException {
